@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+
+<h1>Register new user</h1>
+<form action="/register" method="post">
+
+  <label for="username">Username</label>
+  <input type="text" name="username" placeholder="Username">
+
+  <label for="password">Password</label>
+  <input type="password" name="password" placeholder="Password">
+
+  <button>Register</button>
+</form>
+<p>
+  {{ error_message }}
+</p>
+
+{% endblock %}
+

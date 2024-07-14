@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Spanish word </th>
+      <th>English word </th>
+    </tr>
+  </thead>
+  <tbody id="pair-table">
+    {% for pair in word_pairs %}
+      {% include 'edit_row.html' %}
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<div hx-target="#pair-table" hx-swap="beforeend show:window:bottom">
+  {% include 'add_word_pair_form.html' %}
+</div>
+
+{% endblock %}
+

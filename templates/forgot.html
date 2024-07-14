@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+
+<h1>Forgot password</h1>
+<form action="/forgot" method="post">
+
+  <label for="email">Email</label>
+  <input type="text" name="email" placeholder="Email">
+
+  <button>Send reset email</button> <!-- TODO: Add a spinner -->
+</form>
+
+<p>
+  {{ error_message }}
+</p>
+
+
+{% endblock %}
+

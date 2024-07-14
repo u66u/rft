@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <title>Rustmx</title>
+    <link rel="stylesheet" href="https://unpkg.com/missing.css@1.1.1">
+
+    <script src="/assets/htmx.js"></script>
+
+    <style>
+    #spanish {
+    font-size: 2em;
+    width: fit-content;
+    min-width: 10rem;
+    padding: 1rem;
+    background: darkblue;
+    }
+
+    #english {
+    font-size: 2em;
+    width: fit-content;
+    min-width: 10rem;
+    padding: 1rem;
+    background: darkred;
+    visibility: hidden;
+    }
+    </style>
+  </head>
+
+
+  <body hx-boost="true">
+    <main>
+      <header>
+        <h1>Rustmx</h1>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/words">Words</a>
+          <a href="/edit">Edit</a>
+          <a href="/logout">Logout</a>
+        </nav>
+      </header>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

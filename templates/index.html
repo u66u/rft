@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+<h2>This is the content block</h2>
+<p>
+{{ message_from_rust }}
+</p>
+
+<a href="/words">Words</a>
+<a href="/login">Login</a>
+
+{% endblock %}
+

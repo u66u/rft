@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+
+<h1>Reset password</h1>
+<form action="/reset" method="post">
+  <label for="password">New password</label>
+  <input type="password" id="password" name="password" required>
+
+    <!-- TODO Add confirm password box -->
+
+  <input type="hidden" name="token" value="{{ token }}">
+
+  <button>Reset password</button> <!-- TODO: Add a spinner -->
+</form>
+
+<p>
+  {{ error_message }}
+</p>
+
+
+{% endblock %}
+

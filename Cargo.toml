@@ -1,0 +1,22 @@
+[package]
+name = "rustmx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+actix-web = "4"
+tera = "1.19.1"
+lazy_static = "1.4.0"
+rand = "*"
+actix-files = "*"
+diesel = { version = "2.1.0", features = ["postgres", "chrono", "uuid", "extras"] }
+dotenvy = "0.15"
+serde = { version = "1.0", features = ["derive"] }
+argon2 = "0.5.3"
+pasetors = "0.6.8"
+futures-util = "0.3.30"
+lettre = { version = "0.11.4", features = ["builder", "tokio1-native-tls"] }
+chrono = "0.4.38"
+diesel-derive-enum = { version = "2.1.0", features = ["postgres"] }
+uuid = { version = "1.10.0", features = ["v4"] }

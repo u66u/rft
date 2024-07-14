@@ -1,0 +1,13 @@
+<td>
+  {{ pair[0] }}
+</td>
+<td>
+  {{ pair[1] }}
+</td>
+
+<td>
+  <button hx-post="/delete/{{ pair[0] }}" hx-swap="delete" hx-target="closest tr" hx-confirm="Are you sure you want to delete {{pair[0]}}/{{pair[1]}}?">Delete</button>
+</td>
+<td>
+  <button hx-post="/edit/{{ pair[0] }}" >Edit</button>
+</td>
