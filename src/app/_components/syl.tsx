@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { validateConfigAndGenerateSyllogism, SyllogismConfig, SyllogismType, EqualityType, SequenceType, Syllogism } from '~/logic/syllogism';
+import { SyllogismConfig, SyllogismType, EqualityType, SequenceType, Syllogism } from '~/lib/types/syllogism_types'
+import { validateConfigAndGenerateSyllogism } from '~/logic/syllogism';
 
 
 const SyllogismGame: React.FC = () => {

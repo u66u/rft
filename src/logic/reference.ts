@@ -34,7 +34,6 @@
 //     const nonSeqIndex = config.nonSequentialIndex || 0;
 
 //     console.log(variables);
-//     // Generate sequential premises up to nonSeqIndex
 //     for (let i = 0; i < nonSeqIndex; i++) {
 //       let relation: ComparisonType | EqualityType;
 //       if (config.structure) {
@@ -55,7 +54,6 @@
 //       });
 //     }
 
-//     // Push the first non-sequential premise
 //     let firstNonSeqRelation: ComparisonType | EqualityType;
 //     if (config.structure) {
 //       firstNonSeqRelation = getRelationFromStructure(
@@ -74,7 +72,6 @@
 //       relation: firstNonSeqRelation,
 //     });
 
-//     // Generate remaining non-sequential premises
 //     for (let i = nonSeqIndex + 1; i < config.premiseCount; i++) {
 //       let relation: ComparisonType | EqualityType;
 //       if (config.structure) {
@@ -96,7 +93,6 @@
 //     }
 //   }
 
-//   // Generate the question
 //   const [leftIndex, rightIndex] =
 //     config.questionIndexes[
 //       Math.floor(Math.random() * config.questionIndexes.length)
@@ -111,7 +107,6 @@
 //     type: questionType,
 //   };
 
-//   // Determine answer
 //   let answer: boolean;
 //   if (config.syllogismType === SyllogismType.Comparison) {
 //     answer = determineComparisonAnswer(premises, question);

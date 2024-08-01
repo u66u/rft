@@ -1,3 +1,11 @@
+TODO:
+
+- Stage creation logic
+- Stage models
+- Track user's progress across stages
+- Creating SyllogismAttempt when user engaging with syllogisms
+- Custom mode
+
 # Create T3 App
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.

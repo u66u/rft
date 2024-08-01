@@ -1,55 +1,16 @@
 import { syllogismStrings } from "./constants";
+import {
+  SyllogismType,
+  EqualityType,
+  SequenceType,
+  SyllogismConfig,
+  ComparisonType,
+  Premise,
+  Question,
+  Syllogism,
+} from "~/lib/types/syllogism_types";
 
 type Graph = Map<string, Map<string, ComparisonType | EqualityType>>;
-
-export enum SyllogismType {
-  Comparison = "comparison",
-  Equality = "equality",
-}
-
-export enum ComparisonType {
-  MoreThan = "moreThan",
-  LessThan = "lessThan",
-}
-
-export enum EqualityType {
-  Same = "same",
-  Opposite = "opposite",
-}
-
-export enum SequenceType {
-  Sequential = "sequential",
-  NonSequential = "nonSequential",
-}
-
-export interface SyllogismConfig {
-  syllogismType: SyllogismType;
-  relationshipTypes: (ComparisonType | EqualityType)[]; // what relationships between variables within a syllogism can be used? Just more than? Just less then? Both more/less than? etc
-  questionTypes: (ComparisonType | EqualityType)[]; // what question or questions to ask at the end?
-  sequenceType: SequenceType; // Sequential (A>B, B>C, C>D) or Non-sequential (A>B, C>A, D>C)
-  nonSequentialIndex?: number; // non-sequential premises starting from premise of what index? (0-based)
-  questionIndexes: [number, number][]; // variables of what indexes can be used to comprise the final question (0-baesd)
-  structure?: string; // specific structure of relationships in a syllogism, i.e. SOOS is same, opposoite, opposite, same. LLLM - less, less, less than, more than. Length should match premise count
-  premiseCount: number;
-}
-
-interface Premise {
-  left: string;
-  right: string;
-  relation: ComparisonType | EqualityType;
-}
-
-interface Question {
-  left: string;
-  right: string;
-  type: ComparisonType | EqualityType;
-}
-
-export interface Syllogism {
-  premises: Premise[];
-  question: Question;
-  answer: boolean;
-}
 
 function getRandomString(): string {
   if (syllogismStrings.length === 0) {
@@ -61,6 +22,18 @@ function getRandomString(): string {
     throw new Error("Failed to fetch a random string");
   }
   return randomString;
+}
+
+function generateAllQuestionIndexes(variableCount: number): [number, number][] {
+  const indexes: [number, number][] = [];
+  for (let i = 0; i < variableCount; i++) {
+    for (let j = 0; j < variableCount; j++) {
+      if (i !== j) {
+        indexes.push([i, j]);
+      }
+    }
+  }
+  return indexes;
 }
 
 function determineComparisonAnswer(
@@ -286,13 +259,17 @@ function generateQuestion(
   config: SyllogismConfig,
   variables: string[],
 ): Question {
+  let questionIndexes = config.questionIndexes;
+
+  if (!questionIndexes) {
+    questionIndexes = generateAllQuestionIndexes(variables.length);
+  }
+
   const indexPair =
-    config.questionIndexes[
-      Math.floor(Math.random() * config.questionIndexes.length)
-    ];
+    questionIndexes[Math.floor(Math.random() * questionIndexes.length)];
 
   if (!indexPair) {
-    throw new Error("No valid question indexes found in config");
+    throw new Error("No valid question indexes found");
   }
 
   const [leftIndex, rightIndex] = indexPair;
@@ -343,7 +320,12 @@ export function validateConfigAndGenerateSyllogism(
     return null;
   }
 
-  for (const [left, right] of config.questionIndexes) {
+  // Generate default questionIndexes if not provided
+  const questionIndexes =
+    config.questionIndexes ||
+    generateAllQuestionIndexes(config.premiseCount + 1);
+
+  for (const [left, right] of questionIndexes) {
     if (left >= config.premiseCount + 1 || right >= config.premiseCount + 1) {
       console.error("Question indexes must not exceed the number of variables");
       return null;
@@ -402,27 +384,34 @@ export function validateConfigAndGenerateSyllogism(
     }
   }
 
-  return generateSyllogism(config);
+  const validatedConfig: SyllogismConfig = {
+    ...config,
+    questionIndexes: questionIndexes,
+  };
+
+  return generateSyllogism(validatedConfig);
 }
 
 const syllogismStages: { [key: string]: SyllogismConfig } = {
   stage3: {
     syllogismType: SyllogismType.Equality,
-    relationshipTypes: [EqualityType.Opposite, EqualityType.Same],
+    relationshipTypes: [EqualityType.Opposite],
     questionTypes: [EqualityType.Same],
     sequenceType: SequenceType.NonSequential,
     nonSequentialIndex: 1,
-    questionIndexes: [[0, 4]],
-    structure: "SOSO",
+    questionIndexes: [
+      [0, 4],
+      [1, 4],
+    ],
     premiseCount: 4,
   },
 };
 
-const stageConfig = syllogismStages.stage3;
+// const stageConfig = syllogismStages.stage3;
 
-if (stageConfig) {
-  const result = validateConfigAndGenerateSyllogism(stageConfig);
-  console.log(JSON.stringify(result, null, 2));
-} else {
-  console.error("Stage configuration is undefined");
-}
+// if (stageConfig) {
+//   const result = validateConfigAndGenerateSyllogism(stageConfig);
+//   console.log(JSON.stringify(result, null, 2));
+// } else {
+//   console.error("Stage configuration is undefined");
+// }
