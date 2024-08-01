@@ -1,4 +1,4 @@
-export const strings = [
+export const syllogismStrings: string[] = [
   "QAW",
   "QAR",
   "QAT",

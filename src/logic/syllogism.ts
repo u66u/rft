@@ -1,28 +1,28 @@
-import { strings } from "./constants";
+import { syllogismStrings } from "./constants";
 
 type Graph = Map<string, Map<string, ComparisonType | EqualityType>>;
 
-enum SyllogismType {
+export enum SyllogismType {
   Comparison = "comparison",
   Equality = "equality",
 }
 
-enum ComparisonType {
+export enum ComparisonType {
   MoreThan = "moreThan",
   LessThan = "lessThan",
 }
 
-enum EqualityType {
+export enum EqualityType {
   Same = "same",
   Opposite = "opposite",
 }
 
-enum SequenceType {
+export enum SequenceType {
   Sequential = "sequential",
   NonSequential = "nonSequential",
 }
 
-interface SyllogismConfig {
+export interface SyllogismConfig {
   syllogismType: SyllogismType;
   relationshipTypes: (ComparisonType | EqualityType)[]; // what relationships between variables within a syllogism can be used? Just more than? Just less then? Both more/less than? etc
   questionTypes: (ComparisonType | EqualityType)[]; // what question or questions to ask at the end?
@@ -45,14 +45,22 @@ interface Question {
   type: ComparisonType | EqualityType;
 }
 
-interface Syllogism {
+export interface Syllogism {
   premises: Premise[];
   question: Question;
   answer: boolean;
 }
 
 function getRandomString(): string {
-  return strings[Math.floor(Math.random() * strings.length)];
+  if (syllogismStrings.length === 0) {
+    throw new Error("strings array is empty");
+  }
+  const randomString =
+    syllogismStrings[Math.floor(Math.random() * syllogismStrings.length)];
+  if (!randomString) {
+    throw new Error("Failed to fetch a random string");
+  }
+  return randomString;
 }
 
 function determineComparisonAnswer(
@@ -181,129 +189,148 @@ function getRelationFromStructure(
   }
 }
 
-function generateSyllogism(config: SyllogismConfig): Syllogism {
-  const variables: string[] = [];
-  const premises: Premise[] = [];
-
-  // Generate variables
-  for (let i = 0; i < config.premiseCount + 1; i++) {
-    variables.push(getRandomString());
-  }
-
-  // Generate premises
-  if (config.sequenceType === SequenceType.Sequential) {
-    for (let i = 0; i < config.premiseCount; i++) {
-      let relation: ComparisonType | EqualityType;
-      if (config.structure) {
-        relation = getRelationFromStructure(
-          config.structure[i],
-          config.syllogismType,
-        );
-      } else {
-        relation =
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ];
-      }
-      premises.push({
-        left: variables[i],
-        right: variables[i + 1],
-        relation: relation,
-      });
-    }
-  } else if (config.sequenceType === SequenceType.NonSequential) {
-    const nonSeqIndex = config.nonSequentialIndex || 0;
-
-    console.log(variables);
-    // Generate sequential premises up to nonSeqIndex
-    for (let i = 0; i < nonSeqIndex; i++) {
-      let relation: ComparisonType | EqualityType;
-      if (config.structure) {
-        relation = getRelationFromStructure(
-          config.structure[i],
-          config.syllogismType,
-        );
-      } else {
-        relation =
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ];
-      }
-      premises.push({
-        left: variables[i],
-        right: variables[i + 1],
-        relation: relation,
-      });
-    }
-
-    // Push the first non-sequential premise
-    let firstNonSeqRelation: ComparisonType | EqualityType;
-    if (config.structure) {
-      firstNonSeqRelation = getRelationFromStructure(
-        config.structure[nonSeqIndex],
-        config.syllogismType,
-      );
-    } else {
-      firstNonSeqRelation =
-        config.relationshipTypes[
-          Math.floor(Math.random() * config.relationshipTypes.length)
-        ];
-    }
-    premises.push({
-      left: variables[nonSeqIndex + 1],
-      right: variables[nonSeqIndex - 1],
-      relation: firstNonSeqRelation,
-    });
-
-    // Generate remaining non-sequential premises
-    for (let i = nonSeqIndex + 1; i < config.premiseCount; i++) {
-      let relation: ComparisonType | EqualityType;
-      if (config.structure) {
-        relation = getRelationFromStructure(
-          config.structure[i],
-          config.syllogismType,
-        );
-      } else {
-        relation =
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ];
-      }
-      premises.push({
-        left: variables[i + 1],
-        right: variables[i],
-        relation: relation,
-      });
-    }
-  }
-
-  // Generate the question
-  const [leftIndex, rightIndex] =
-    config.questionIndexes[
-      Math.floor(Math.random() * config.questionIndexes.length)
-    ];
-  const questionType =
-    config.questionTypes[
-      Math.floor(Math.random() * config.questionTypes.length)
-    ];
-  const question: Question = {
-    left: variables[leftIndex],
-    right: variables[rightIndex],
-    type: questionType,
-  };
-
-  // Determine answer
-  let answer: boolean;
-  if (config.syllogismType === SyllogismType.Comparison) {
-    answer = determineComparisonAnswer(premises, question);
-  } else {
-    answer = determineEqualityAnswer(premises, question);
-  }
+export function generateSyllogism(config: SyllogismConfig): Syllogism {
+  const variables = generateVariables(config.premiseCount + 1);
+  const premises = generatePremises(config, variables);
+  const question = generateQuestion(config, variables);
+  const answer = determineAnswer(config.syllogismType, premises, question);
 
   return { premises, question, answer };
 }
 
-function validateConfigAndGenerateSyllogism(
+function generateVariables(count: number): string[] {
+  return Array.from({ length: count }, () => getRandomString());
+}
+
+function generatePremises(
+  config: SyllogismConfig,
+  variables: string[],
+): Premise[] {
+  return config.sequenceType === SequenceType.Sequential
+    ? generateSequentialPremises(config, variables)
+    : generateNonSequentialPremises(config, variables);
+}
+
+function generateSequentialPremises(
+  config: SyllogismConfig,
+  variables: string[],
+): Premise[] {
+  return Array.from({ length: config.premiseCount }, (_, i) => {
+    const left = variables[i];
+    const right = variables[i + 1];
+    if (left === undefined || right === undefined) {
+      throw new Error(`Missing variable at index ${i} or ${i + 1}`);
+    }
+    return {
+      left,
+      right,
+      relation: getRelation(config, i),
+    };
+  });
+}
+
+function generateNonSequentialPremises(
+  config: SyllogismConfig,
+  variables: string[],
+): Premise[] {
+  const nonSeqIndex = config.nonSequentialIndex || 0;
+  const sequentialPremises = generateSequentialPremises(
+    { ...config, premiseCount: nonSeqIndex },
+    variables,
+  );
+
+  const nonSequentialPremises = Array.from(
+    { length: config.premiseCount - nonSeqIndex },
+    (_, i) => {
+      const left = variables[i + nonSeqIndex + 1];
+      const right =
+        i === 0 ? variables[nonSeqIndex - 1] : variables[i + nonSeqIndex];
+      if (left === undefined || right === undefined) {
+        throw new Error(
+          `Missing variable at index ${i + nonSeqIndex + 1} or ${i === 0 ? nonSeqIndex - 1 : i + nonSeqIndex}`,
+        );
+      }
+      return {
+        left,
+        right,
+        relation: getRelation(config, i + nonSeqIndex),
+      };
+    },
+  );
+
+  return [...sequentialPremises, ...nonSequentialPremises];
+}
+
+function getRelation(
+  config: SyllogismConfig,
+  index: number,
+): ComparisonType | EqualityType {
+  if (config.structure) {
+    const structureChar = config.structure[index];
+    if (structureChar === undefined) {
+      throw new Error(`Structure character at index ${index} is undefined`);
+    }
+    return getRelationFromStructure(structureChar, config.syllogismType);
+  }
+  const relation =
+    config.relationshipTypes[
+      Math.floor(Math.random() * config.relationshipTypes.length)
+    ];
+  if (relation === undefined) {
+    throw new Error("No valid relationship type found");
+  }
+  return relation;
+}
+
+function generateQuestion(
+  config: SyllogismConfig,
+  variables: string[],
+): Question {
+  const indexPair =
+    config.questionIndexes[
+      Math.floor(Math.random() * config.questionIndexes.length)
+    ];
+
+  if (!indexPair) {
+    throw new Error("No valid question indexes found in config");
+  }
+
+  const [leftIndex, rightIndex] = indexPair;
+
+  const questionType =
+    config.questionTypes[
+      Math.floor(Math.random() * config.questionTypes.length)
+    ];
+
+  if (questionType === undefined) {
+    throw new Error("No valid question type found in config");
+  }
+
+  const left = variables[leftIndex];
+  const right = variables[rightIndex];
+
+  if (left === undefined || right === undefined) {
+    throw new Error(`Missing variable at index ${leftIndex} or ${rightIndex}`);
+  }
+
+  return {
+    left,
+    right,
+    type: questionType,
+  };
+}
+
+function determineAnswer(
+  syllogismType: SyllogismType,
+  premises: Premise[],
+  question: Question,
+): boolean {
+  return syllogismType === SyllogismType.Comparison
+    ? determineComparisonAnswer(premises, question)
+    : determineEqualityAnswer(premises, question);
+}
+
+export function validateConfigAndGenerateSyllogism(
   config: SyllogismConfig,
 ): Syllogism | null {
   if (config.premiseCount <= 0) {
@@ -324,13 +351,22 @@ function validateConfigAndGenerateSyllogism(
   }
 
   const isComparisonType = config.syllogismType === SyllogismType.Comparison;
+  const validComparisonRelationships: ComparisonType[] = [
+    ComparisonType.MoreThan,
+    ComparisonType.LessThan,
+  ];
+  const validEqualityRelationships: EqualityType[] = [
+    EqualityType.Same,
+    EqualityType.Opposite,
+  ];
+
   const validRelationships = isComparisonType
-    ? [ComparisonType.MoreThan, ComparisonType.LessThan]
-    : [EqualityType.Same, EqualityType.Opposite];
+    ? validComparisonRelationships
+    : validEqualityRelationships;
 
   if (
     !config.relationshipTypes.every((type) =>
-      validRelationships.includes(type as any),
+      (validRelationships as any[]).includes(type),
     )
   ) {
     console.error("Relationship types do not match syllogism type");
@@ -339,7 +375,7 @@ function validateConfigAndGenerateSyllogism(
 
   if (
     !config.questionTypes.every((type) =>
-      validRelationships.includes(type as any),
+      (validRelationships as any[]).includes(type),
     )
   ) {
     console.error("Question types do not match syllogism type");
@@ -374,7 +410,7 @@ const syllogismStages: { [key: string]: SyllogismConfig } = {
     syllogismType: SyllogismType.Equality,
     relationshipTypes: [EqualityType.Opposite, EqualityType.Same],
     questionTypes: [EqualityType.Same],
-    sequenceType: SequenceType.Sequential,
+    sequenceType: SequenceType.NonSequential,
     nonSequentialIndex: 1,
     questionIndexes: [[0, 4]],
     structure: "SOSO",
@@ -382,5 +418,11 @@ const syllogismStages: { [key: string]: SyllogismConfig } = {
   },
 };
 
-const result = validateConfigAndGenerateSyllogism(syllogismStages.stage3);
-console.log(JSON.stringify(result, null, 2));
+const stageConfig = syllogismStages.stage3;
+
+if (stageConfig) {
+  const result = validateConfigAndGenerateSyllogism(stageConfig);
+  console.log(JSON.stringify(result, null, 2));
+} else {
+  console.error("Stage configuration is undefined");
+}
