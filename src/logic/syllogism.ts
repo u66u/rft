@@ -1,8 +1,37 @@
 import { strings } from "./constants";
 
-type ComparisonType = "moreThan" | "lessThan";
-type EqualityType = "same" | "opposite";
-type SyllogismType = "comparison" | "equality";
+type Graph = Map<string, Map<string, ComparisonType | EqualityType>>;
+
+enum SyllogismType {
+  Comparison = "comparison",
+  Equality = "equality",
+}
+
+enum ComparisonType {
+  MoreThan = "moreThan",
+  LessThan = "lessThan",
+}
+
+enum EqualityType {
+  Same = "same",
+  Opposite = "opposite",
+}
+
+enum SequenceType {
+  Sequential = "sequential",
+  NonSequential = "nonSequential",
+}
+
+interface SyllogismConfig {
+  syllogismType: SyllogismType;
+  relationshipTypes: (ComparisonType | EqualityType)[];
+  questionTypes: (ComparisonType | EqualityType)[];
+  sequenceType: SequenceType;
+  nonSequentialIndex?: number;
+  questionIndexes: [number, number][];
+  structure?: string;
+  premiseCount: number;
+}
 
 interface Premise {
   left: string;
@@ -26,127 +55,213 @@ function getRandomString(): string {
   return strings[Math.floor(Math.random() * strings.length)];
 }
 
-function generateComparisonSyllogism(
-  premiseCount: number,
-  syllogismType: ComparisonType,
-  questionType: ComparisonType,
-  questionIndexes: [number, number],
-): Syllogism {
-  const premises: Premise[] = [];
-  const usedStrings: string[] = [];
+function determineComparisonAnswer(
+  premises: Premise[],
+  question: Question,
+): boolean {
+  const graph: Graph = new Map();
 
-  for (let i = 0; i < premiseCount + 1; i++) {
-    let str: string;
-    do {
-      str = getRandomString();
-    } while (usedStrings.includes(str));
-    usedStrings.push(str);
+  // Build the graph
+  for (const premise of premises) {
+    if (!graph.has(premise.left)) graph.set(premise.left, new Map());
+    if (!graph.has(premise.right)) graph.set(premise.right, new Map());
+    graph
+      .get(premise.left)!
+      .set(premise.right, premise.relation as ComparisonType);
+    graph
+      .get(premise.right)!
+      .set(
+        premise.left,
+        premise.relation === ComparisonType.MoreThan
+          ? ComparisonType.LessThan
+          : ComparisonType.MoreThan,
+      );
   }
 
-  for (let i = 0; i < premiseCount; i++) {
-    premises.push({
-      left: usedStrings[i],
-      right: usedStrings[i + 1],
-      relation: syllogismType,
-    });
+  // Perform DFS
+  const visited = new Set<string>();
+  const path: ComparisonType[] = [];
+
+  function dfs(current: string, target: string): boolean {
+    if (current === target) return true;
+    visited.add(current);
+
+    const neighbors = graph.get(current);
+    if (neighbors) {
+      for (const [neighbor, relation] of neighbors) {
+        if (!visited.has(neighbor)) {
+          path.push(relation as ComparisonType);
+          if (dfs(neighbor, target)) return true;
+          path.pop();
+        }
+      }
+    }
+
+    return false;
   }
 
-  const [leftIndex, rightIndex] = questionIndexes;
-  const question: Question = {
-    left: usedStrings[leftIndex],
-    right: usedStrings[rightIndex],
-    type: questionType,
-  };
+  const pathExists = dfs(question.left, question.right);
 
-  let answer: boolean;
-  if (syllogismType === questionType) {
-    answer = leftIndex < rightIndex;
-  } else {
-    answer = leftIndex > rightIndex;
-  }
+  if (!pathExists) return false;
 
-  return { premises, question, answer };
-}
-
-function generateEqualitySyllogism(
-  premiseCount: number,
-  questionType: EqualityType,
-  questionIndexes: [number, number],
-): Syllogism {
-  const premises: Premise[] = [];
-  const usedStrings: string[] = [];
-
-  for (let i = 0; i < premiseCount + 1; i++) {
-    let str: string;
-    do {
-      str = getRandomString();
-    } while (usedStrings.includes(str));
-    usedStrings.push(str);
-  }
-
-  for (let i = 0; i < premiseCount; i++) {
-    premises.push({
-      left: usedStrings[i],
-      right: usedStrings[i + 1],
-      relation: Math.random() < 0.5 ? "same" : "opposite",
-    });
-  }
-
-  const [leftIndex, rightIndex] = questionIndexes;
-  const question: Question = {
-    left: usedStrings[leftIndex],
-    right: usedStrings[rightIndex],
-    type: questionType,
-  };
-
-  let answer = true;
-  let currentRelation: EqualityType = "same";
-  for (let i = leftIndex; i < rightIndex; i++) {
-    if (premises[i].relation === "opposite") {
-      currentRelation = currentRelation === "same" ? "opposite" : "same";
+  // Determine overall relationship
+  let overallRelation = path[0];
+  for (let i = 1; i < path.length; i++) {
+    if (overallRelation !== path[i]) {
+      overallRelation = ComparisonType.LessThan;
+      break;
     }
   }
-  answer = currentRelation === questionType;
+
+  // Compare overall relationship with question type
+  return overallRelation === question.type;
+}
+
+function determineEqualityAnswer(
+  premises: Premise[],
+  question: Question,
+): boolean {
+  const graph: Graph = new Map();
+
+  // Build the graph
+  for (const premise of premises) {
+    if (!graph.has(premise.left)) graph.set(premise.left, new Map());
+    if (!graph.has(premise.right)) graph.set(premise.right, new Map());
+    graph
+      .get(premise.left)!
+      .set(premise.right, premise.relation as EqualityType);
+    graph
+      .get(premise.right)!
+      .set(premise.left, premise.relation as EqualityType);
+  }
+
+  // Perform DFS
+  const visited = new Set<string>();
+  let overallRelation: EqualityType = EqualityType.Same;
+
+  function dfs(current: string, target: string): boolean {
+    if (current === target) return true;
+    visited.add(current);
+
+    const neighbors = graph.get(current);
+    if (neighbors) {
+      for (const [neighbor, relation] of neighbors) {
+        if (!visited.has(neighbor)) {
+          if (relation === EqualityType.Opposite) {
+            overallRelation =
+              overallRelation === EqualityType.Same
+                ? EqualityType.Opposite
+                : EqualityType.Same;
+          }
+          if (dfs(neighbor, target)) return true;
+          if (relation === EqualityType.Opposite) {
+            overallRelation =
+              overallRelation === EqualityType.Same
+                ? EqualityType.Opposite
+                : EqualityType.Same;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  const pathExists = dfs(question.left, question.right);
+
+  if (!pathExists) return false;
+
+  // Compare overall relationship with question type
+  return overallRelation === question.type;
+}
+
+function generateSyllogism(config: SyllogismConfig): Syllogism {
+  const variables: string[] = [];
+  const premises: Premise[] = [];
+
+  // Generate variables
+  for (let i = 0; i < config.premiseCount + 1; i++) {
+    variables.push(getRandomString());
+  }
+
+  // Generate premises
+  if (config.sequenceType === SequenceType.Sequential) {
+    for (let i = 0; i < config.premiseCount; i++) {
+      premises.push({
+        left: variables[i],
+        right: variables[i + 1],
+        relation:
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ],
+      });
+    }
+  } else {
+    // NonSequential
+    const nonSeqIndex = config.nonSequentialIndex || 0;
+
+    // Generate sequential premises up to nonSeqIndex
+    for (let i = 0; i < nonSeqIndex; i++) {
+      premises.push({
+        left: variables[i],
+        right: variables[i + 1],
+        relation:
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ],
+      });
+    }
+
+    // Generate non-sequential premises
+    for (let i = nonSeqIndex; i < config.premiseCount; i++) {
+      premises.push({
+        left: variables[i + 1],
+        right: variables[i],
+        relation:
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ],
+      });
+    }
+  }
+
+  // Generate question
+  const [leftIndex, rightIndex] =
+    config.questionIndexes[
+      Math.floor(Math.random() * config.questionIndexes.length)
+    ];
+  const questionType =
+    config.questionTypes[
+      Math.floor(Math.random() * config.questionTypes.length)
+    ];
+  const question: Question = {
+    left: variables[leftIndex],
+    right: variables[rightIndex],
+    type: questionType,
+  };
+
+  // Determine answer
+  let answer: boolean;
+  if (config.syllogismType === SyllogismType.Comparison) {
+    answer = determineComparisonAnswer(premises, question);
+  } else {
+    answer = determineEqualityAnswer(premises, question);
+  }
 
   return { premises, question, answer };
 }
 
-function generateSyllogism(
-  type: SyllogismType,
-  premiseCount: number,
-  questionType: ComparisonType | EqualityType,
-  questionIndexes: [number, number],
-  syllogismType?: ComparisonType,
-): Syllogism {
-  if (type === "comparison" && syllogismType) {
-    return generateComparisonSyllogism(
-      premiseCount,
-      syllogismType,
-      questionType as ComparisonType,
-      questionIndexes,
-    );
-  } else if (type === "equality") {
-    return generateEqualitySyllogism(
-      premiseCount,
-      questionType as EqualityType,
-      questionIndexes,
-    );
-  } else {
-    throw new Error(
-      "Invalid syllogism type or missing syllogismType for comparison syllogism",
-    );
-  }
-}
+const syllogismStages: { [key: string]: SyllogismConfig } = {
+  stage3: {
+    syllogismType: SyllogismType.Comparison,
+    relationshipTypes: [ComparisonType.MoreThan],
+    questionTypes: [ComparisonType.MoreThan],
+    sequenceType: SequenceType.NonSequential,
+    nonSequentialIndex: 0,
+    questionIndexes: [[1, 3]],
+    premiseCount: 4,
+  },
+};
 
-const comparisonSyllogism = generateSyllogism(
-  "comparison",
-  3,
-  "moreThan",
-  [0, 3],
-  "lessThan",
-);
-
-const equalitySyllogism = generateSyllogism("equality", 1, "same", [0, 1]);
-console.log("Equality Syllogism:", equalitySyllogism);
-
-const test1 = generateSyllogism("equality", 1, "opposite", [0, 1]);
+const result = generateSyllogism(syllogismStages.stage3);
+console.log(JSON.stringify(result, null, 2));
