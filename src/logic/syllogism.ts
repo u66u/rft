@@ -24,12 +24,12 @@ enum SequenceType {
 
 interface SyllogismConfig {
   syllogismType: SyllogismType;
-  relationshipTypes: (ComparisonType | EqualityType)[];
-  questionTypes: (ComparisonType | EqualityType)[];
-  sequenceType: SequenceType;
-  nonSequentialIndex?: number;
-  questionIndexes: [number, number][];
-  structure?: string;
+  relationshipTypes: (ComparisonType | EqualityType)[]; // what relationships between variables within a syllogism can be used? Just more than? Just less then? Both more/less than? etc
+  questionTypes: (ComparisonType | EqualityType)[]; // what question or questions to ask at the end?
+  sequenceType: SequenceType; // Sequential (A>B, B>C, C>D) or Non-sequential (A>B, C>A, D>C)
+  nonSequentialIndex?: number; // non-sequential premises starting from premise of what index? (0-based)
+  questionIndexes: [number, number][]; // variables of what indexes can be used to comprise the final question (0-baesd)
+  structure?: string; // specific structure of relationships in a syllogism, i.e. SOOS is same, opposoite, opposite, same. LLLM - less, less, less than, more than. Length should match premise count
   premiseCount: number;
 }
 
@@ -61,7 +61,6 @@ function determineComparisonAnswer(
 ): boolean {
   const graph: Graph = new Map();
 
-  // Build the graph
   for (const premise of premises) {
     if (!graph.has(premise.left)) graph.set(premise.left, new Map());
     if (!graph.has(premise.right)) graph.set(premise.right, new Map());
@@ -78,7 +77,6 @@ function determineComparisonAnswer(
       );
   }
 
-  // Perform DFS
   const visited = new Set<string>();
   const path: ComparisonType[] = [];
 
@@ -123,7 +121,6 @@ function determineEqualityAnswer(
 ): boolean {
   const graph: Graph = new Map();
 
-  // Build the graph
   for (const premise of premises) {
     if (!graph.has(premise.left)) graph.set(premise.left, new Map());
     if (!graph.has(premise.right)) graph.set(premise.right, new Map());
@@ -135,7 +132,6 @@ function determineEqualityAnswer(
       .set(premise.left, premise.relation as EqualityType);
   }
 
-  // Perform DFS
   const visited = new Set<string>();
   let overallRelation: EqualityType = EqualityType.Same;
 
@@ -171,7 +167,6 @@ function determineEqualityAnswer(
 
   if (!pathExists) return false;
 
-  // Compare overall relationship with question type
   return overallRelation === question.type;
 }
 
@@ -186,6 +181,7 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
 
   // Generate premises
   if (config.sequenceType === SequenceType.Sequential) {
+    console.log(variables);
     for (let i = 0; i < config.premiseCount; i++) {
       premises.push({
         left: variables[i],
@@ -196,12 +192,13 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
           ],
       });
     }
-  } else {
-    // NonSequential
+  } else if (config.sequenceType === SequenceType.NonSequential) {
     const nonSeqIndex = config.nonSequentialIndex || 0;
 
+    console.log(variables);
     // Generate sequential premises up to nonSeqIndex
     for (let i = 0; i < nonSeqIndex; i++) {
+      console.log("seq left:", variables[i], "right", variables[i + 1]);
       premises.push({
         left: variables[i],
         right: variables[i + 1],
@@ -212,8 +209,19 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
       });
     }
 
-    // Generate non-sequential premises
-    for (let i = nonSeqIndex; i < config.premiseCount; i++) {
+    // push the first non-seq premise
+    premises.push({
+      left: variables[nonSeqIndex + 1],
+      right: variables[nonSeqIndex - 1],
+      relation:
+        config.relationshipTypes[
+          Math.floor(Math.random() * config.relationshipTypes.length)
+        ],
+    });
+
+    // push other non-sequential premises
+    for (let i = nonSeqIndex + 1; i < config.premiseCount; i++) {
+      console.log("left:", variables[i + 1], "right", variables[i]);
       premises.push({
         left: variables[i + 1],
         right: variables[i],
@@ -253,13 +261,13 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
 
 const syllogismStages: { [key: string]: SyllogismConfig } = {
   stage3: {
-    syllogismType: SyllogismType.Comparison,
-    relationshipTypes: [ComparisonType.MoreThan],
-    questionTypes: [ComparisonType.MoreThan],
+    syllogismType: SyllogismType.Equality,
+    relationshipTypes: [EqualityType.Opposite],
+    questionTypes: [EqualityType.Same],
     sequenceType: SequenceType.NonSequential,
-    nonSequentialIndex: 0,
-    questionIndexes: [[1, 3]],
-    premiseCount: 4,
+    nonSequentialIndex: 2,
+    questionIndexes: [[0, 4]],
+    premiseCount: 14,
   },
 };
 
