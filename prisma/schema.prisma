@@ -63,6 +63,8 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    iq_tests IqTest[]
+    syllogism_attempts SyllogismAttempt[]
 }
 
 model VerificationToken {
@@ -71,4 +73,45 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+enum IqTestType {
+    CAIT
+    SAT
+    MensaNorway
+}
+
+model IqTest {
+    id String @id @default(cuid())
+    user_id String
+    user User @relation(fields: [user_id], references: [id])
+    test_type IqTestType
+    num_of_correct_answers Int
+    responses Int[]
+    score Int?
+
+    startedAt DateTime @default(now())
+    finishedAt DateTime?
+    updatedAt DateTime @updatedAt
+
+}
+
+enum AttemptType {
+    Normal
+    Test
+}
+
+model SyllogismAttempt {
+    id String @id @default(cuid())
+    user_id String
+    user User @relation(fields: [user_id], references: [id])
+    attempt_type AttemptType
+    stage_number Int
+    time_constraint_secs Int
+    correct_answers Int
+    completed_successfully Boolean
+
+    startedAt DateTime @default(now())
+    finishedAt DateTime?
+    updatedAt DateTime @updatedAt
 }
