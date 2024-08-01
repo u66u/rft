@@ -170,6 +170,17 @@ function determineEqualityAnswer(
   return overallRelation === question.type;
 }
 
+function getRelationFromStructure(
+  char: string,
+  syllogismType: SyllogismType,
+): ComparisonType | EqualityType {
+  if (syllogismType === SyllogismType.Comparison) {
+    return char === "M" ? ComparisonType.MoreThan : ComparisonType.LessThan;
+  } else {
+    return char === "S" ? EqualityType.Same : EqualityType.Opposite;
+  }
+}
+
 function generateSyllogism(config: SyllogismConfig): Syllogism {
   const variables: string[] = [];
   const premises: Premise[] = [];
@@ -181,15 +192,23 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
 
   // Generate premises
   if (config.sequenceType === SequenceType.Sequential) {
-    console.log(variables);
     for (let i = 0; i < config.premiseCount; i++) {
+      let relation: ComparisonType | EqualityType;
+      if (config.structure) {
+        relation = getRelationFromStructure(
+          config.structure[i],
+          config.syllogismType,
+        );
+      } else {
+        relation =
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ];
+      }
       premises.push({
         left: variables[i],
         right: variables[i + 1],
-        relation:
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ],
+        relation: relation,
       });
     }
   } else if (config.sequenceType === SequenceType.NonSequential) {
@@ -198,42 +217,67 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
     console.log(variables);
     // Generate sequential premises up to nonSeqIndex
     for (let i = 0; i < nonSeqIndex; i++) {
-      console.log("seq left:", variables[i], "right", variables[i + 1]);
+      let relation: ComparisonType | EqualityType;
+      if (config.structure) {
+        relation = getRelationFromStructure(
+          config.structure[i],
+          config.syllogismType,
+        );
+      } else {
+        relation =
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ];
+      }
       premises.push({
         left: variables[i],
         right: variables[i + 1],
-        relation:
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ],
+        relation: relation,
       });
     }
 
-    // push the first non-seq premise
+    // Push the first non-sequential premise
+    let firstNonSeqRelation: ComparisonType | EqualityType;
+    if (config.structure) {
+      firstNonSeqRelation = getRelationFromStructure(
+        config.structure[nonSeqIndex],
+        config.syllogismType,
+      );
+    } else {
+      firstNonSeqRelation =
+        config.relationshipTypes[
+          Math.floor(Math.random() * config.relationshipTypes.length)
+        ];
+    }
     premises.push({
       left: variables[nonSeqIndex + 1],
       right: variables[nonSeqIndex - 1],
-      relation:
-        config.relationshipTypes[
-          Math.floor(Math.random() * config.relationshipTypes.length)
-        ],
+      relation: firstNonSeqRelation,
     });
 
-    // push other non-sequential premises
+    // Generate remaining non-sequential premises
     for (let i = nonSeqIndex + 1; i < config.premiseCount; i++) {
-      console.log("left:", variables[i + 1], "right", variables[i]);
+      let relation: ComparisonType | EqualityType;
+      if (config.structure) {
+        relation = getRelationFromStructure(
+          config.structure[i],
+          config.syllogismType,
+        );
+      } else {
+        relation =
+          config.relationshipTypes[
+            Math.floor(Math.random() * config.relationshipTypes.length)
+          ];
+      }
       premises.push({
         left: variables[i + 1],
         right: variables[i],
-        relation:
-          config.relationshipTypes[
-            Math.floor(Math.random() * config.relationshipTypes.length)
-          ],
+        relation: relation,
       });
     }
   }
 
-  // Generate question
+  // Generate the question
   const [leftIndex, rightIndex] =
     config.questionIndexes[
       Math.floor(Math.random() * config.questionIndexes.length)
@@ -259,17 +303,84 @@ function generateSyllogism(config: SyllogismConfig): Syllogism {
   return { premises, question, answer };
 }
 
+function validateConfigAndGenerateSyllogism(
+  config: SyllogismConfig,
+): Syllogism | null {
+  if (config.premiseCount <= 0) {
+    console.error("Premise count must be greater than 0");
+    return null;
+  }
+
+  if (config.structure && config.structure.length !== config.premiseCount) {
+    console.error("Structure length must match premise count");
+    return null;
+  }
+
+  for (const [left, right] of config.questionIndexes) {
+    if (left >= config.premiseCount + 1 || right >= config.premiseCount + 1) {
+      console.error("Question indexes must not exceed the number of variables");
+      return null;
+    }
+  }
+
+  const isComparisonType = config.syllogismType === SyllogismType.Comparison;
+  const validRelationships = isComparisonType
+    ? [ComparisonType.MoreThan, ComparisonType.LessThan]
+    : [EqualityType.Same, EqualityType.Opposite];
+
+  if (
+    !config.relationshipTypes.every((type) =>
+      validRelationships.includes(type as any),
+    )
+  ) {
+    console.error("Relationship types do not match syllogism type");
+    return null;
+  }
+
+  if (
+    !config.questionTypes.every((type) =>
+      validRelationships.includes(type as any),
+    )
+  ) {
+    console.error("Question types do not match syllogism type");
+    return null;
+  }
+
+  if (config.sequenceType === SequenceType.NonSequential) {
+    if (
+      config.nonSequentialIndex === undefined ||
+      config.nonSequentialIndex >= config.premiseCount
+    ) {
+      console.error("Invalid non-sequential index");
+      return null;
+    }
+  }
+
+  if (config.structure) {
+    const validChars = isComparisonType ? ["M", "L"] : ["S", "O"];
+    if (
+      !config.structure.split("").every((char) => validChars.includes(char))
+    ) {
+      console.error("Invalid characters in structure");
+      return null;
+    }
+  }
+
+  return generateSyllogism(config);
+}
+
 const syllogismStages: { [key: string]: SyllogismConfig } = {
   stage3: {
     syllogismType: SyllogismType.Equality,
-    relationshipTypes: [EqualityType.Opposite],
+    relationshipTypes: [EqualityType.Opposite, EqualityType.Same],
     questionTypes: [EqualityType.Same],
-    sequenceType: SequenceType.NonSequential,
-    nonSequentialIndex: 2,
+    sequenceType: SequenceType.Sequential,
+    nonSequentialIndex: 1,
     questionIndexes: [[0, 4]],
-    premiseCount: 14,
+    structure: "SOSO",
+    premiseCount: 4,
   },
 };
 
-const result = generateSyllogism(syllogismStages.stage3);
+const result = validateConfigAndGenerateSyllogism(syllogismStages.stage3);
 console.log(JSON.stringify(result, null, 2));
