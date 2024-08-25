@@ -32,7 +32,7 @@ export const Navbar: FC = () => {
   return (
     <nav
       className={cn(
-        '-translate-x-1/2 fixed bottom-6 left-1/2 isolate z-50 flex items-center gap-6 rounded-full border bg-opacity-50 px-6 text-sm shadow-lg backdrop-blur-sm backdrop-filter',
+        '-translate-x-1/2 fixed bottom-6 left-1/2 isolate z-50 flex items-center gap-6 rounded-xl border bg-opacity-50 px-6 text-sm shadow-lg backdrop-blur-sm backdrop-filter',
         'border-neutral-950/10 bg-white/80',
         'dark:border-neutral-100/10 dark:bg-neutral-950/80'
       )}
@@ -41,7 +41,7 @@ export const Navbar: FC = () => {
         <Link
           key={link.path}
           href={link.path}
-        //   label={link.name}
+          //   label={link.name}
           className={cn(
             'relative py-3',
             isActive(link.path)
