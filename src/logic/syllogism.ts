@@ -392,21 +392,6 @@ export function validateConfigAndGenerateSyllogism(
   return generateSyllogism(validatedConfig);
 }
 
-const syllogismStages: { [key: string]: SyllogismConfig } = {
-  stage3: {
-    syllogismType: SyllogismType.Equality,
-    relationshipTypes: [EqualityType.Opposite],
-    questionTypes: [EqualityType.Same],
-    sequenceType: SequenceType.NonSequential,
-    nonSequentialIndex: 1,
-    questionIndexes: [
-      [0, 4],
-      [1, 4],
-    ],
-    premiseCount: 4,
-  },
-};
-
 // const stageConfig = syllogismStages.stage3;
 
 // if (stageConfig) {
