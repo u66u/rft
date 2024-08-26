@@ -58,14 +58,24 @@ export const syllogismRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { db, session } = ctx;
       const { stageNumber } = input;
-      return db.user.update({
+
+      const user = await db.user.findUnique({
         where: { id: session.user.id },
-        data: {
-          completed_stages: {
-            push: stageNumber,
-          },
-        },
+        select: { completed_stages: true },
       });
+
+      if (!user?.completed_stages.includes(stageNumber)) {
+        return db.user.update({
+          where: { id: session.user.id },
+          data: {
+            completed_stages: {
+              push: stageNumber,
+            },
+          },
+        });
+      }
+
+      return { message: "Stage already completed" };
     }),
 
   getUserProgress: protectedProcedure.query(async ({ ctx }) => {

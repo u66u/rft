@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { api } from "~/trpc/react";
 import { AttemptType } from '@prisma/client';
 import { SyllogismConfig, Syllogism } from '~/lib/types/syllogism_types';
@@ -41,6 +41,8 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
 
     const handleStartStage = () => {
         setIsStageStarted(true);
+        setCorrectAnswers(0);
+        setCompleted(0);
         startAttempt.mutate({
             stageNumber,
             timeConstraintSecs,
@@ -49,6 +51,8 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
     };
 
     const handleAnswer = async (userAnswer: boolean) => {
+        if (completed >= 16) return;
+
         const isCorrect = currentSyllogism?.answer === userAnswer;
 
         if (isCorrect) {
@@ -74,7 +78,7 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
                 completed: successful,
             });
 
-            if (successful) {
+            if (successful && correctAnswers + (successful ? 1 : 0) == 16) {
                 await completeStage.mutateAsync({ stageNumber });
                 setIsStageCompleted(true);
             } else if (attemptType === AttemptType.Normal) {
@@ -96,6 +100,11 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
     const handleNextStage = () => {
         router.push(`/stage/${stageNumber + 1}`);
     };
+
+    const handleTestMode = () => {
+        setAttemptType(AttemptType.Test);
+        handleStartStage();
+    }
 
     if (!isStageStarted) {
         return (
@@ -122,7 +131,7 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
             <div>
                 <h2>Stage {stageNumber} completed successfully!</h2>
                 {attemptType === AttemptType.Normal && (
-                    <button onClick={() => setAttemptType(AttemptType.Test)}>Take Test for this Stage</button>
+                    <button onClick={handleTestMode}>Take Test for this Stage</button>
                 )}
                 <button onClick={handleNextStage}>Go to Next Stage</button>
             </div>
@@ -139,11 +148,13 @@ export const Stage: React.FC<StageProps> = ({ stageNumber, config }) => {
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                 <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${(completed / 16) * 100}%` }}></div>
             </div>
+            {/* Render premises */}
             {currentSyllogism.premises.map((premise, index) => (
                 <div key={index}>
                     {premise.left} is {premise.relation} than {premise.right}
                 </div>
             ))}
+            {/* Render question */}
             <div>
                 Is {currentSyllogism.question.left} {currentSyllogism.question.type} than {currentSyllogism.question.right}?
             </div>

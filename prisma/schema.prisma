@@ -65,7 +65,7 @@ model User {
     posts         Post[]
     iq_tests IqTest[]
     syllogism_attempts SyllogismAttempt[]
-    completed_stages Int[] @unique
+    completed_stages Int[]
 
     @@index([completed_stages])
 }

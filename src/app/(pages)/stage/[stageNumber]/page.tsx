@@ -1,22 +1,25 @@
-'use client';
+"use client";
 
-import { useParams } from 'next/navigation';
-import { Stage } from '~/app/_components/stage';
-import PageLayout from '~/app/pageLayout';
 import { syllogismStages } from '~/logic/constants';
-export default function StagePage() {
-    const params = useParams();
-    const stageNumber = params.stageNumber as string;
+import StageClient from '~/app/_components/stage/stageClient';
 
-    if (!stageNumber) return <div>Invalid stage</div>;
 
-    const stageConfig = syllogismStages[`stage${stageNumber}`];
+import { SyllogismConfig } from '~/lib/types/syllogism_types';
 
-    if (!stageConfig) return <div>Stage not found</div>;
-
-    return (
-        <PageLayout>
-            <Stage stageNumber={parseInt(stageNumber, 10)} config={stageConfig} />
-        </PageLayout>
-    );
+interface StagePageProps {
+    params: { stageNumber: string }
 }
+
+const StagePage = ({ params }: StagePageProps) => {
+    const { stageNumber } = params;
+
+    const config = syllogismStages[`stage${stageNumber}`];
+
+    if (!stageNumber || !config) {
+        return <div>Invalid stage</div>;
+    }
+
+    return <StageClient stageNumber={stageNumber} config={config as SyllogismConfig} />;
+};
+
+export default StagePage;
