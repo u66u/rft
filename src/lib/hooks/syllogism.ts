@@ -14,6 +14,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [testModeCompleted, setTestModeCompleted] = useState<boolean>(false);
+  const [isLoadingFinal, setIsLoadingFinal] = useState(false);
 
   const startAttemptMutation = api.syllogism.startAttempt.useMutation();
   const updateAttemptMutation = api.syllogism.updateAttempt.useMutation();
@@ -36,6 +37,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     setCurrentSyllogismIndex(0);
     setCorrectAnswers(0);
     setIsComplete(false);
+    setIsLoadingFinal(false); // Reset loading state
   };
 
   const handleAnswer = async (answer: boolean) => {
@@ -49,10 +51,11 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
 
     const nextIndex = currentSyllogismIndex + 1;
 
-    setCurrentSyllogismIndex(nextIndex);
-
     if (nextIndex >= 16 || (mode === AttemptType.Normal && !isCorrect)) {
-      await finishAttempt(correctAnswers + (isCorrect ? 1 : 0));
+      setIsLoadingFinal(true); // Set loading state for final attempt
+      await finishAttempt(correctAnswers + (isCorrect ? 1 : 0)); // Pass the correct answer count after the last question
+    } else {
+      setCurrentSyllogismIndex(nextIndex);
     }
   };
 
@@ -62,7 +65,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     const completed = finalCorrectAnswers >= 16;
     await updateAttemptMutation.mutateAsync({
       attemptId: currentAttempt,
-      correctAnswers: finalCorrectAnswers,
+      correctAnswers: finalCorrectAnswers, // Log actual correct answers count
       completed,
     });
 
@@ -78,6 +81,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
 
     setIsComplete(true);
     setCurrentAttempt(null);
+    setIsLoadingFinal(false); // Reset loading state
   };
 
   return {
@@ -93,5 +97,6 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     startStage,
     handleAnswer,
     testModeCompleted,
+    isLoadingFinal, // Expose loading state
   };
 };

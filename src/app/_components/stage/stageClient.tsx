@@ -13,6 +13,7 @@ interface StageClientProps {
     stageNumber: string;
     config: SyllogismConfig;
 }
+
 const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     const router = useRouter();
     const {
@@ -28,6 +29,7 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
         startStage,
         handleAnswer,
         testModeCompleted,
+        isLoadingFinal, // Get loading state
     } = useStage(stageNumber, config);
 
     const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +43,7 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     }, [syllogisms]);
 
     useEffect(() => {
-
+        // Disable buttons when stage is complete
         if (isComplete) {
             setButtonsDisabled(true);
         } else {
@@ -60,6 +62,8 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
 
         if (testMode) {
             setMode(AttemptType.Test);
+        } else {
+            setMode(AttemptType.Normal);
         }
 
         await startStage();
@@ -69,13 +73,13 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     const handleAnswerClick = async (answer: boolean) => {
         if (!buttonsDisabled) {
             setButtonsDisabled(true);
-            await handleAnswer(answer);
+            await handleAnswer(answer); // Final state update handled inside useStage
             setButtonsDisabled(false);
         }
     };
 
-    if (isLoading) {
-        return <div>Loading stage...</div>;
+    if (isLoading || isLoadingFinal) { // Show loader for either initial or final loading
+        return <div>Loading...</div>;
     }
 
     const currentSyllogism = syllogisms[currentSyllogismIndex];
