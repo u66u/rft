@@ -1,5 +1,7 @@
 'use client';
 
+import { Layout } from 'lucide-react';
+import PageLayout from '~/app/pageLayout';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useStage } from '~/lib/hooks/syllogism';
@@ -44,7 +46,6 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     }, [syllogisms]);
 
     useEffect(() => {
-        // Disable buttons when stage is complete
         if (isComplete) {
             setButtonsDisabled(true);
         } else {
@@ -73,12 +74,12 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     const handleAnswerClick = async (answer: boolean) => {
         if (!buttonsDisabled) {
             setButtonsDisabled(true);
-            await handleAnswer(answer); // Final state update handled inside useStage
+            await handleAnswer(answer);
             setButtonsDisabled(false);
         }
     };
 
-    if (isLoading || isLoadingFinal) { // Show loader for either initial or final loading
+    if (isLoading || isLoadingFinal) {
         return <div>Loading...</div>;
     }
 
@@ -86,42 +87,46 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
 
     return (
         <div>
-            <h1>Stage {stageNumber}</h1>
-            {!currentAttempt && !isComplete && (
-                <StageSetup
-                    mode={mode}
-                    setMode={setMode}
-                    timeConstraint={timeConstraint}
-                    setTimeConstraint={setTimeConstraint}
-                    onStart={() => {
-                        setButtonsDisabled(false);
-                        startStage(mode);
-                    }}
-                />
-            )}
-            {currentAttempt && currentSyllogism && (
-                <>
-                    <progress value={currentSyllogismIndex + 1} max={16} />
-                    <p>Question {currentSyllogismIndex + 1} of 16</p>
-                    <SyllogismDisplay
-                        syllogism={currentSyllogism}
-                        onAnswer={handleAnswerClick}
-                        buttonsDisabled={buttonsDisabled}
+            <PageLayout>
+                <h1>Stage {stageNumber}</h1>
+                {!currentAttempt && !isComplete && (
+                    <StageSetup
+                        mode={mode}
+                        setMode={setMode}
+                        timeConstraint={timeConstraint}
+                        setTimeConstraint={setTimeConstraint}
+                        onStart={() => {
+                            setButtonsDisabled(false);
+                            startStage(mode);
+                        }}
                     />
-                </>
-            )}
-            {isComplete && (
-                <StageComplete
-                    correctAnswers={correctAnswers}
-                    totalQuestions={16}
-                    onNextStage={handleNextStage}
-                    onRetry={handleRetry}
-                    retryDisabled={retryDisabled}
-                    onRetryAsTest={handleRetryAsTest}
-                    testModeCompleted={testModeCompleted}
-                    currentMode={mode}
-                />
-            )}
+
+
+                )}
+                {currentAttempt && currentSyllogism && (
+                    <>
+                        <progress value={currentSyllogismIndex + 1} max={16} />
+                        <p>Question {currentSyllogismIndex + 1} of 16</p>
+                        <SyllogismDisplay
+                            syllogism={currentSyllogism}
+                            onAnswer={handleAnswerClick}
+                            buttonsDisabled={buttonsDisabled}
+                        />
+                    </>
+                )}
+                {isComplete && (
+                    <StageComplete
+                        correctAnswers={correctAnswers}
+                        totalQuestions={16}
+                        onNextStage={handleNextStage}
+                        onRetry={handleRetry}
+                        retryDisabled={retryDisabled}
+                        onRetryAsTest={handleRetryAsTest}
+                        testModeCompleted={testModeCompleted}
+                        currentMode={mode}
+                    />
+                )}
+            </PageLayout>
         </div>
     );
 };

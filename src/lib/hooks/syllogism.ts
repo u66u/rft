@@ -52,8 +52,8 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     const nextIndex = currentSyllogismIndex + 1;
 
     if (nextIndex >= 16 || (mode === AttemptType.Normal && !isCorrect)) {
-      setIsLoadingFinal(true); // Set loading state for final attempt
-      await finishAttempt(correctAnswers + (isCorrect ? 1 : 0)); // Pass the correct answer count after the last question
+      setIsLoadingFinal(true);
+      await finishAttempt(correctAnswers + (isCorrect ? 1 : 0));
     } else {
       setCurrentSyllogismIndex(nextIndex);
     }
@@ -65,7 +65,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     const completed = finalCorrectAnswers >= 16;
     await updateAttemptMutation.mutateAsync({
       attemptId: currentAttempt,
-      correctAnswers: finalCorrectAnswers, // Log actual correct answers count
+      correctAnswers: finalCorrectAnswers,
       completed,
     });
 
@@ -81,7 +81,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
 
     setIsComplete(true);
     setCurrentAttempt(null);
-    setIsLoadingFinal(false); // Reset loading state
+    setIsLoadingFinal(false);
   };
 
   return {
