@@ -29,8 +29,9 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
         startStage,
         handleAnswer,
         testModeCompleted,
-        isLoadingFinal, // Get loading state
+        isLoadingFinal,
     } = useStage(stageNumber, config);
+
 
     const [isLoading, setIsLoading] = useState(true);
     const [buttonsDisabled, setButtonsDisabled] = useState(false);
@@ -56,19 +57,18 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
         router.push(`/stage/${nextStage}`);
     };
 
-    const handleRetry = async (testMode: boolean = false) => {
+    const handleRetry = async (retryMode: AttemptType) => {
         setRetryDisabled(true);
         setButtonsDisabled(false);
-
-        if (testMode) {
-            setMode(AttemptType.Test);
-        } else {
-            setMode(AttemptType.Normal);
-        }
-
-        await startStage();
+        setMode(retryMode);
+        await startStage(retryMode);
         setRetryDisabled(false);
     };
+
+    const handleRetryAsTest = () => {
+        handleRetry(AttemptType.Test);
+    };
+
 
     const handleAnswerClick = async (answer: boolean) => {
         if (!buttonsDisabled) {
@@ -95,7 +95,7 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
                     setTimeConstraint={setTimeConstraint}
                     onStart={() => {
                         setButtonsDisabled(false);
-                        startStage();
+                        startStage(mode);
                     }}
                 />
             )}
@@ -115,10 +115,11 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
                     correctAnswers={correctAnswers}
                     totalQuestions={16}
                     onNextStage={handleNextStage}
-                    onRetry={() => handleRetry(false)}
+                    onRetry={handleRetry}
                     retryDisabled={retryDisabled}
-                    onRetryAsTest={() => handleRetry(true)}
+                    onRetryAsTest={handleRetryAsTest}
                     testModeCompleted={testModeCompleted}
+                    currentMode={mode}
                 />
             )}
         </div>

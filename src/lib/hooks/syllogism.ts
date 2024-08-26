@@ -27,17 +27,17 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     setSyllogisms(generatedSyllogisms);
   }, [config]);
 
-  const startStage = async () => {
+  const startStage = async (currentMode: AttemptType) => {
     const attempt = await startAttemptMutation.mutateAsync({
       stageNumber: parseInt(stageNumber),
       timeConstraintSecs: timeConstraint,
-      attemptType: mode,
+      attemptType: currentMode,
     });
     setCurrentAttempt(attempt.id);
     setCurrentSyllogismIndex(0);
     setCorrectAnswers(0);
     setIsComplete(false);
-    setIsLoadingFinal(false); // Reset loading state
+    setIsLoadingFinal(false);
   };
 
   const handleAnswer = async (answer: boolean) => {
@@ -97,6 +97,6 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     startStage,
     handleAnswer,
     testModeCompleted,
-    isLoadingFinal, // Expose loading state
+    isLoadingFinal,
   };
 };

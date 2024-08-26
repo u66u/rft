@@ -1,14 +1,17 @@
+// In StageComplete.tsx
 import React from 'react';
 import PageLayout from '~/app/pageLayout';
+import { AttemptType } from '@prisma/client';
 
 interface StageCompleteProps {
     correctAnswers: number;
     totalQuestions: number;
     onNextStage: () => void;
-    onRetry: () => void;
+    onRetry: (mode: AttemptType) => void;
     retryDisabled: boolean;
     onRetryAsTest: () => void;
     testModeCompleted: boolean;
+    currentMode: AttemptType;
 }
 
 export const StageComplete: React.FC<StageCompleteProps> = ({
@@ -19,6 +22,7 @@ export const StageComplete: React.FC<StageCompleteProps> = ({
     retryDisabled,
     onRetryAsTest,
     testModeCompleted,
+    currentMode,
 }) => (
     <PageLayout>
         <div>
@@ -30,7 +34,9 @@ export const StageComplete: React.FC<StageCompleteProps> = ({
                     {!testModeCompleted && <button onClick={onRetryAsTest}>Retry in Test Mode</button>}
                 </>
             ) : (
-                <button disabled={retryDisabled} onClick={onRetry}>Retry Stage</button>
+                <button disabled={retryDisabled} onClick={() => onRetry(currentMode)}>
+                    Retry Stage ({currentMode === AttemptType.Normal ? 'Normal' : 'Test'} Mode)
+                </button>
             )}
         </div>
     </PageLayout>
