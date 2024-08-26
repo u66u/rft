@@ -7,9 +7,10 @@ import PageLayout from '~/app/pageLayout';
 interface SyllogismDisplayProps {
     syllogism: Syllogism;
     onAnswer: (answer: boolean) => void;
+    buttonsDisabled: boolean;
 }
 
-export const SyllogismDisplay: React.FC<SyllogismDisplayProps> = ({ syllogism, onAnswer }) => {
+export const SyllogismDisplay: React.FC<SyllogismDisplayProps> = ({ syllogism, onAnswer, buttonsDisabled }) => {
     return (
         <PageLayout>
             <div>
@@ -17,8 +18,9 @@ export const SyllogismDisplay: React.FC<SyllogismDisplayProps> = ({ syllogism, o
                     <p key={index}>{premise.left} is {premise.relation} {premise.right}</p>
                 ))}
                 <p>Is {syllogism.question.left} {syllogism.question.type} {syllogism.question.right}?</p>
-                <button onClick={() => onAnswer(true)}>Yes</button>
-                <button onClick={() => onAnswer(false)}>No</button>
-            </div></PageLayout>
+                <button disabled={buttonsDisabled} onClick={() => onAnswer(true)}>Yes</button>
+                <button disabled={buttonsDisabled} onClick={() => onAnswer(false)}>No</button>
+            </div>
+        </PageLayout>
     );
 };

@@ -27,9 +27,12 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
         isComplete,
         startStage,
         handleAnswer,
+        testModeCompleted,
     } = useStage(stageNumber, config);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [buttonsDisabled, setButtonsDisabled] = useState(false);
+    const [retryDisabled, setRetryDisabled] = useState(false);
 
     useEffect(() => {
         if (syllogisms.length > 0) {
@@ -37,9 +40,38 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
         }
     }, [syllogisms]);
 
+    useEffect(() => {
+
+        if (isComplete) {
+            setButtonsDisabled(true);
+        } else {
+            setButtonsDisabled(false);
+        }
+    }, [isComplete]);
+
     const handleNextStage = () => {
         const nextStage = parseInt(stageNumber) + 1;
         router.push(`/stage/${nextStage}`);
+    };
+
+    const handleRetry = async (testMode: boolean = false) => {
+        setRetryDisabled(true);
+        setButtonsDisabled(false);
+
+        if (testMode) {
+            setMode(AttemptType.Test);
+        }
+
+        await startStage();
+        setRetryDisabled(false);
+    };
+
+    const handleAnswerClick = async (answer: boolean) => {
+        if (!buttonsDisabled) {
+            setButtonsDisabled(true);
+            await handleAnswer(answer);
+            setButtonsDisabled(false);
+        }
     };
 
     if (isLoading) {
@@ -57,7 +89,10 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
                     setMode={setMode}
                     timeConstraint={timeConstraint}
                     setTimeConstraint={setTimeConstraint}
-                    onStart={startStage}
+                    onStart={() => {
+                        setButtonsDisabled(false);
+                        startStage();
+                    }}
                 />
             )}
             {currentAttempt && currentSyllogism && (
@@ -66,7 +101,8 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
                     <p>Question {currentSyllogismIndex + 1} of 16</p>
                     <SyllogismDisplay
                         syllogism={currentSyllogism}
-                        onAnswer={handleAnswer}
+                        onAnswer={handleAnswerClick}
+                        buttonsDisabled={buttonsDisabled}
                     />
                 </>
             )}
@@ -75,11 +111,14 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
                     correctAnswers={correctAnswers}
                     totalQuestions={16}
                     onNextStage={handleNextStage}
-                    onRetry={startStage}
+                    onRetry={() => handleRetry(false)}
+                    retryDisabled={retryDisabled}
+                    onRetryAsTest={() => handleRetry(true)}
+                    testModeCompleted={testModeCompleted}
                 />
             )}
         </div>
     );
 };
 
-export default StageClient
+export default StageClient;

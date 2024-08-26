@@ -13,6 +13,7 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
   const [currentSyllogismIndex, setCurrentSyllogismIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [testModeCompleted, setTestModeCompleted] = useState<boolean>(false);
 
   const startAttemptMutation = api.syllogism.startAttempt.useMutation();
   const updateAttemptMutation = api.syllogism.updateAttempt.useMutation();
@@ -44,27 +45,30 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     if (!currentSyllogism) return;
 
     const isCorrect = answer === currentSyllogism.answer;
-    if (isCorrect) setCorrectAnswers((prev) => prev + 1);
+    if (isCorrect) setCorrectAnswers((prev) => (prev < 16 ? prev + 1 : prev));
 
-    if (
-      currentSyllogismIndex === 15 ||
-      (mode === AttemptType.Normal && !isCorrect)
-    ) {
-      await finishAttempt();
-    } else {
-      setCurrentSyllogismIndex((prev) => prev + 1);
+    const nextIndex = currentSyllogismIndex + 1;
+
+    setCurrentSyllogismIndex(nextIndex);
+
+    if (nextIndex >= 16 || (mode === AttemptType.Normal && !isCorrect)) {
+      await finishAttempt(correctAnswers + (isCorrect ? 1 : 0));
     }
   };
 
-  const finishAttempt = async () => {
+  const finishAttempt = async (finalCorrectAnswers: number) => {
     if (!currentAttempt) return;
 
-    const completed = correctAnswers === 16;
+    const completed = finalCorrectAnswers >= 16;
     await updateAttemptMutation.mutateAsync({
       attemptId: currentAttempt,
-      correctAnswers,
+      correctAnswers: finalCorrectAnswers,
       completed,
     });
+
+    if (completed && mode === AttemptType.Test) {
+      setTestModeCompleted(true);
+    }
 
     if (completed) {
       await completeStagesMutation.mutateAsync({
@@ -88,5 +92,6 @@ export const useStage = (stageNumber: string, config: SyllogismConfig) => {
     isComplete,
     startStage,
     handleAnswer,
+    testModeCompleted,
   };
 };
