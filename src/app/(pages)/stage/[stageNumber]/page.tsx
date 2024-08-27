@@ -16,7 +16,7 @@ const StagePage = ({ params }: StagePageProps) => {
     const config = syllogismStages[`stage${stageNumber}`];
 
     if (!stageNumber || !config) {
-        return <div>Invalid stage</div>;
+        return <div className='text-white'>Invalid stage</div>;
     }
 
     return <StageClient stageNumber={stageNumber} config={config as SyllogismConfig} />;

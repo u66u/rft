@@ -16,12 +16,7 @@ import Link from 'next/link';
 
 const pages = [
   { name: 'Home', path: '/', icon: HomeIcon },
-  { name: 'About', path: '/about', icon: CircleUserIcon },
-  { name: 'Work', path: '/work', icon: BriefcaseBusinessIcon },
-  { name: 'Blog', path: '/blog', icon: NotebookPenIcon },
-  { name: 'Features', path: '/features', icon: NewspaperIcon },
-  { name: 'Stack', path: '/stack', icon: LayersIcon },
-  { name: 'Contact', path: '/contact', icon: MessagesSquareIcon },
+  { name: 'Stages', path: '/stage', icon: LayersIcon },
 ];
 
 export const Navbar: FC = () => {

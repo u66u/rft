@@ -59,3 +59,70 @@ body {
   content: attr(title);
   @apply mb-6 inline-block text-right text-sm text-neutral-500 dark:text-neutral-400;
 }
+
+@keyframes shake {
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
+
+.completed-stage {
+  background: linear-gradient(45deg, #ff8a00, #e52e71, #ff8a00, #e52e71);
+  background-size: 300% 300%;
+  animation: gradientWave 9s ease infinite;
+  color: white;
+}
+.completed-stage:hover {
+  transform: scale(1.1);
+}
+
+.uncompleted-stage {
+  background: linear-gradient(45deg, #1a1a1a, #2a2a2a, #1a1a1a, #2a2a2a);
+  background-size: 300% 300%;
+}
+
+.uncompleted-stage:hover {
+  transform: scale(1.1);
+}
+
+@keyframes gradientWave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

@@ -35,31 +35,30 @@ export const StageSetup: React.FC<StageSetupProps> = ({
     };
 
     return (
-        <PageLayout>
-            <div className="space-y-4 p-4  rounded-lg shadow">
-                <Select value={mode} onValueChange={(value) => setMode(value as AttemptType)}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={AttemptType.Normal}>Normal</SelectItem>
-                        <SelectItem value={AttemptType.Test}>Test</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Input
-                    type="number"
-                    value={timeConstraint}
-                    onChange={(e) => handleTimeConstraintChange(e.target.value)}
-                    min={2}
-                    max={30}
-                    placeholder="Time constraint (2-30 seconds)"
-                />
-                {error && (
-                    <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-                <Button onClick={onStart} disabled={!!error}>Start</Button>
-            </div></PageLayout>
+        <div className="space-y-4 py-4 rounded-lg shadow">
+            <Select value={mode} onValueChange={(value) => setMode(value as AttemptType)}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Select mode" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value={AttemptType.Normal}>Normal</SelectItem>
+                    <SelectItem value={AttemptType.Test}>Test</SelectItem>
+                </SelectContent>
+            </Select>
+            <Input
+                type="number"
+                value={timeConstraint}
+                onChange={(e) => handleTimeConstraintChange(e.target.value)}
+                min={2}
+                max={30}
+                placeholder="Time constraint (2-30 seconds)"
+            />
+            {error && (
+                <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            <Button onClick={onStart} disabled={!!error}>Start</Button>
+        </div>
     );
 };

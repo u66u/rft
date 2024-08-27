@@ -1,7 +1,7 @@
-// In StageComplete.tsx
 import React from 'react';
 import PageLayout from '~/app/pageLayout';
 import { AttemptType } from '@prisma/client';
+import { Button } from '~/components/ui/button';
 
 interface StageCompleteProps {
     correctAnswers: number;
@@ -24,20 +24,40 @@ export const StageComplete: React.FC<StageCompleteProps> = ({
     testModeCompleted,
     currentMode,
 }) => (
-    <PageLayout>
-        <div>
-            <h2>Stage Complete</h2>
-            <p>You got {correctAnswers} out of {totalQuestions} correct.</p>
+    <div>
+        <h2>Stage Complete</h2>
+        <p>You got {correctAnswers} out of {totalQuestions} correct.</p>
+
+        <div className="flex space-x-4">
             {correctAnswers === totalQuestions ? (
                 <>
-                    <button onClick={onNextStage}>Next Stage</button>
-                    {!testModeCompleted && <button onClick={onRetryAsTest}>Retry in Test Mode</button>}
+                    <Button
+                        onClick={onNextStage}
+                        variant="outline"
+                        className="flex-1 bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        Next Stage
+                    </Button>
+                    {!testModeCompleted && (
+                        <Button
+                            onClick={onRetryAsTest}
+                            variant="outline"
+                            className="flex-1 bg-gray-700 text-white hover:bg-gray-600"
+                        >
+                            Retry in Test Mode
+                        </Button>
+                    )}
                 </>
             ) : (
-                <button disabled={retryDisabled} onClick={() => onRetry(currentMode)}>
+                <Button
+                    disabled={retryDisabled}
+                    onClick={() => onRetry(currentMode)}
+                    variant="outline"
+                    className="flex-1 bg-gray-700 text-white hover:bg-gray-600"
+                >
                     Retry Stage ({currentMode === AttemptType.Normal ? 'Normal' : 'Test'} Mode)
-                </button>
+                </Button>
             )}
         </div>
-    </PageLayout>
+    </div>
 );
