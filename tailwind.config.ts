@@ -1,14 +1,25 @@
-import { type Config } from "tailwindcss";
+import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 import typography from "@tailwindcss/typography";
 
-export default {
+const config: Config = {
   content: [
     "./src/**/*.tsx",
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
     "src/page.tsx",
     ".src/app/components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  prefix: "",
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
         orange: {
@@ -65,10 +76,15 @@ export default {
           },
         },
       }),
-      animation: {
-        wave: "wave-animation 2.5s infinite",
-      },
       keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
         "wave-animation": {
           "0%": { transform: "rotate(0.0deg)" },
           "10%": { transform: "rotate(14.0deg)" },
@@ -80,7 +96,14 @@ export default {
           "100%": { transform: "rotate(0.0deg)" },
         },
       },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        wave: "wave-animation 2.5s infinite",
+      },
     },
   },
-  plugins: [typography],
+  plugins: [require("tailwindcss-animate"), typography],
 } satisfies Config;
+
+export default config;

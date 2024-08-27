@@ -4,13 +4,13 @@ export enum SyllogismType {
 }
 
 export enum ComparisonType {
-  MoreThan = "moreThan",
-  LessThan = "lessThan",
+  MoreThan = "more than",
+  LessThan = "less than",
 }
 
 export enum EqualityType {
-  Same = "same",
-  Opposite = "opposite",
+  Same = "the same as",
+  Opposite = "opposite to",
 }
 
 export enum SequenceType {
