@@ -10,6 +10,10 @@ import { SyllogismConfig } from '~/lib/types/syllogism_types';
 import { AttemptType } from '@prisma/client';
 import { Progress } from "~/components/ui/progress";
 import PageLayout from '~/app/pageLayout';
+import Link from 'next/link';
+import { Button } from '~/components/ui/button';
+import { ArrowLeftIcon } from 'lucide-react';
+
 
 interface StageClientProps {
     stageNumber: string;
@@ -73,6 +77,9 @@ const StageClient: React.FC<StageClientProps> = ({ stageNumber, config }) => {
     return (
         <PageLayout>
             <div className="mx-auto p-4">
+            <Link href="/stage">
+                <Button variant="outline" className="mb-4 text-white"><ArrowLeftIcon />Back to all stages</Button>
+            </Link>
                 <h1 className="text-3xl font-bold mb-4">Stage {stageNumber}</h1>
                 {!currentAttempt && !isComplete && (
                     <StageSetup

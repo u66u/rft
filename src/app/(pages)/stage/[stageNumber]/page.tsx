@@ -2,8 +2,6 @@
 
 import { syllogismStages } from '~/logic/constants';
 import StageClient from '~/app/_components/stage/stageClient';
-
-
 import { SyllogismConfig } from '~/lib/types/syllogism_types';
 
 interface StagePageProps {

@@ -7,6 +7,7 @@ import { cn } from "~/lib/utils";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Navbar } from "./_components/navbar";
 import { Toaster } from 'sonner';
+import ClientSessionProvider from "./_components/client_session_provider";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -26,9 +27,11 @@ export default function RootLayout({
           'bg-white font-sans dark:bg-neutral-950'
         )}
       >
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-        <Navbar />
-        <Toaster />
+        <ClientSessionProvider>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <Navbar />
+          <Toaster />
+        </ClientSessionProvider>
       </body>
     </html>
   );

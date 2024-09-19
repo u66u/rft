@@ -2,27 +2,47 @@
 
 import { cn } from '~/lib/utils';
 import {
-  BriefcaseBusinessIcon,
   CircleUserIcon,
   HomeIcon,
   LayersIcon,
-  MessagesSquareIcon,
-  NewspaperIcon,
-  NotebookPenIcon,
+  LogInIcon,
+  LogOutIcon,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { FC } from 'react';
 import Link from 'next/link';
+import { useSession, signOut } from "next-auth/react";
 
 const pages = [
   { name: 'Home', path: '/', icon: HomeIcon },
   { name: 'Stages', path: '/stage', icon: LayersIcon },
 ];
 
+type NavItem = {
+  name: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  onClick?: () => void;
+};
+
 export const Navbar: FC = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const router = useRouter();
+
   const isActive = (path: string) =>
     path === '/' ? path === pathname : pathname.startsWith(path);
+
+  const navItems: NavItem[] = [
+    ...pages,
+    ...(session ? [{ name: 'Profile', path: '/profile', icon: CircleUserIcon }] : []),
+    {
+      name: session ? 'Log out' : 'Log in',
+      path: session ? '#' : '/auth',
+      icon: session ? LogOutIcon : LogInIcon,
+      onClick: session ? () => signOut() : () => router.push('/auth'),
+    },
+  ];
 
   return (
     <nav
@@ -32,11 +52,11 @@ export const Navbar: FC = () => {
         'dark:border-neutral-100/10 dark:bg-neutral-950/80'
       )}
     >
-      {pages.map((link) => (
+      {navItems.map((link) => (
         <Link
           key={link.path}
           href={link.path}
-          //   label={link.name}
+          onClick={link.onClick ? (e) => { e.preventDefault(); link.onClick?.(); } : undefined}
           className={cn(
             'relative py-3',
             isActive(link.path)
