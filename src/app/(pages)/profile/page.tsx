@@ -26,7 +26,7 @@ const SettingsPage = async () => {
         email={session.user.email!}
         avatar={session.user.image!}
       />
-      <SettingsCard title="Account" description={""} children={undefined}>
+      <SettingsCard title="Account" description={""}>
         <div className="flex w-52 flex-col space-y-2">
           <p>Delete account:</p>
           <DeleteAccount

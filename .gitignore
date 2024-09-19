@@ -4,6 +4,7 @@ docs/1.md
 /node_modules
 /.pnp
 .pnp.js
+.vscode
 
 # testing
 /coverage
