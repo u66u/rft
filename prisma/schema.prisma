@@ -82,16 +82,26 @@ enum IqTestType {
     CAIT
     SAT
     MensaNorway
+    TRI52
+    Other
+}
+
+enum IqTestVerification {
+    SelfReported
+    TakenOnWebsite
 }
 
 model IqTest {
     id String @id @default(cuid())
     user_id String
-    user User @relation(fields: [user_id], references: [id])
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
     test_type IqTestType
+    test_custom_name String?
     num_of_correct_answers Int
     responses Int[]
     score Int?
+    timed Boolean
+    verification IqTestVerification
 
     startedAt DateTime @default(now())
     finishedAt DateTime?
@@ -107,7 +117,7 @@ enum AttemptType {
 model SyllogismAttempt {
     id String @id @default(cuid())
     user_id String
-    user User @relation(fields: [user_id], references: [id])
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
     attempt_type AttemptType
     stage_number Int
     time_constraint_secs Int
